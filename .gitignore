@@ -1,0 +1,39 @@
+# -------------------------
+# Node.js
+# -------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dist / Build files
+dist/
+build/
+
+# Local environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Coverage
+coverage/
+
+# Logs
+logs/
+*.log
+logs/*.log
+
+# PM2 logs
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Runtime data
+*.seed
+*.pid
+
+# TLS files
+*.pem
