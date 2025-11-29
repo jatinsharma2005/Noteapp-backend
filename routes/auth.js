@@ -12,6 +12,10 @@ import { sendEmail } from "../utils/sendEmail.js";
 dotenv.config();
 const router = express.Router();
 
+router.get("/warmup", (req, res) => {
+  res.json({ live: true });
+});
+
 // =====================================================
 // REGISTER  (Send OTP)
 // =====================================================

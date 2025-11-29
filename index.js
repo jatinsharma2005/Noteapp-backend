@@ -24,6 +24,10 @@ app.use(
 app.use(express.json());
 
 // Routes
+app.get("/api/auth/warmup", (req, res) => {
+  res.json({ live: true });
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/notes", notesRoutes);
 
