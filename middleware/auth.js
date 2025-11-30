@@ -3,22 +3,24 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
-const auth = (req, res, next) => {
-  const authHeader = req.header("Authorization");
+export const auth = (req, res, next) => {
+  const header = req.headers.authorization;
 
-  if (!authHeader)
-    return res.status(401).json({ msg: "No token, unauthorized" });
+  if (!header || !header.startsWith("Bearer ")) {
+    return res
+      .status(401)
+      .json({ success: false, message: "No token, authorization denied" });
+  }
 
-  const token = authHeader.replace("Bearer ", "");
+  const token = header.split(" ")[1];
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // contains user id
+    req.user = { id: decoded.id };
     next();
   } catch (err) {
-    console.error("Auth Middleware Error:", err.message);
-    res.status(401).json({ msg: "Invalid token" });
+    return res
+      .status(401)
+      .json({ success: false, message: "Token is not valid" });
   }
 };
-
-export default auth;

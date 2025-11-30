@@ -1,16 +1,20 @@
+// models/User.js
 import mongoose from "mongoose";
 
-const UserSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
-    name: String,
-    email: { type: String, unique: true },
-    password: String,
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
 
     verified: { type: Boolean, default: false },
+
     otp: { type: String },
     otpExpires: { type: Date },
+    lastOtpSentAt: { type: Date }, // for resend limiting
   },
   { timestamps: true }
 );
 
-export default mongoose.model("User", UserSchema);
+const User = mongoose.model("User", userSchema);
+export default User;

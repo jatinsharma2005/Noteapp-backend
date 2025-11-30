@@ -1,32 +1,42 @@
+// routes/notes.js
 import express from "express";
-import auth from "../middleware/auth.js";
-import {
-  getNotes,
-  createNote,
-  updateNote,
-  deleteNote,
-  togglePin, // ✅ IMPORTED
-} from "../controllers/notesController.js";
+import Note from "../models/Note.js";
+import { auth } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// ---------------------------
-// PROTECTED NOTE ROUTES
-// ---------------------------
+router.use(auth); // all routes require token
 
-// Get all notes
-router.get("/", auth, getNotes);
+// CREATE NOTE
+router.post("/", async (req, res) => {
+  try {
+    const note = await Note.create({
+      title: req.body.title,
+      content: req.body.content,
+      pinned: false,
+      user: req.user.id,
+    });
+    res.json({ success: true, note });
+  } catch (err) {
+    console.error("Create Note Error:", err.message);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
 
-// Create note
-router.post("/", auth, createNote);
+// GET NOTES
+router.get("/", async (req, res) => {
+  try {
+    const notes = await Note.find({ user: req.user.id }).sort({
+      pinned: -1,
+      createdAt: -1,
+    });
+    res.json({ success: true, notes });
+  } catch (err) {
+    console.error("Get Notes Error:", err.message);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
 
-// Update note
-router.put("/:id", auth, updateNote);
-
-// ⭐ Pin / Unpin note (MUST be above delete route)
-router.put("/pin/:id", auth, togglePin);
-
-// Delete note
-router.delete("/:id", auth, deleteNote);
+// You can add update, delete, pin similarly...
 
 export default router;

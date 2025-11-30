@@ -5,12 +5,26 @@ dotenv.config();
 mongoose.set("strictQuery", true);
 
 const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log("MongoDB connected");
-  } catch (err) {
-    console.error("MongoDB connection error:", err.message);
-    // Do NOT exit in Render (it restarts forever)
+  let isConnected = false;
+
+  while (!isConnected) {
+    try {
+      await mongoose.connect(process.env.MONGO_URI, {
+        serverSelectionTimeoutMS: 5000, // 🔥 Mongo responds faster
+      });
+
+      console.log("MongoDB connected");
+      isConnected = true;
+    } catch (err) {
+      console.error(
+        "MongoDB connection failed. Retrying in 3 seconds...",
+        err.message
+      );
+
+      // 🔥 VERY IMPORTANT:
+      // Instead of crashing Render, wait & retry.
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+    }
   }
 };
 

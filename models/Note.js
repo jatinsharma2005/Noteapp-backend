@@ -7,25 +7,27 @@ const NoteSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true, // 🔥 Faster queries: Note.find({ user })
     },
 
     title: {
       type: String,
       required: true,
+      trim: true, // 🔥 Remove trailing spaces
     },
 
     content: {
       type: String,
       default: "",
+      trim: true,
     },
 
-    // ⭐ NEW FIELD: Pin notes (pinned notes appear first)
     pinned: {
       type: Boolean,
       default: false,
+      index: true, // 🔥 Sorting pinned notes becomes faster
     },
 
-    // ⭐ NEW FIELD: Tags/categories for notes
     tags: {
       type: [String],
       default: [],
@@ -34,4 +36,6 @@ const NoteSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Important for Next.js hot reload:
+// Prevent CompilationError: Cannot overwrite `Note` model
 export default mongoose.models.Note || mongoose.model("Note", NoteSchema);

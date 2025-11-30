@@ -1,7 +1,8 @@
+// controllers/notesController.js
 import Note from "../models/Note.js";
 
 // -------------------------------------
-// GET ALL NOTES (Pinned first → Latest first)
+// GET ALL NOTES (Pinned first → Latest)
 // -------------------------------------
 export const getNotes = async (req, res) => {
   try {
@@ -24,17 +25,19 @@ export const createNote = async (req, res) => {
   try {
     const { title, content, tags, pinned } = req.body;
 
-    if (!title)
-      return res
-        .status(400)
-        .json({ success: false, message: "Title is required" });
+    if (!title?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Title is required",
+      });
+    }
 
     const newNote = await Note.create({
-      title,
-      content,
-      user: req.user.id,
-      pinned: pinned || false,
+      title: title.trim(),
+      content: content || "",
       tags: Array.isArray(tags) ? tags : [],
+      pinned: Boolean(pinned),
+      user: req.user.id,
     });
 
     return res.status(201).json({
@@ -55,18 +58,25 @@ export const updateNote = async (req, res) => {
   try {
     const note = await Note.findById(req.params.id);
 
-    if (!note)
+    if (!note) {
       return res
         .status(404)
         .json({ success: false, message: "Note not found" });
+    }
 
-    if (note.user.toString() !== req.user.id)
+    if (note.user.toString() !== req.user.id) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
 
-    // Update fields only if they are provided
-    if (req.body.title !== undefined) note.title = req.body.title;
-    if (req.body.content !== undefined) note.content = req.body.content;
-    if (req.body.tags !== undefined) note.tags = req.body.tags;
+    // Update fields safely
+    const { title, content, tags, pinned } = req.body;
+
+    if (title !== undefined) note.title = title.trim();
+    if (content !== undefined) note.content = content;
+    if (tags !== undefined) note.tags = Array.isArray(tags) ? tags : [];
+    if (pinned !== undefined) note.pinned = Boolean(pinned);
+
+    note.updatedAt = new Date();
 
     const updatedNote = await note.save();
 
@@ -84,15 +94,18 @@ export const togglePin = async (req, res) => {
   try {
     const note = await Note.findById(req.params.id);
 
-    if (!note)
+    if (!note) {
       return res
         .status(404)
         .json({ success: false, message: "Note not found" });
+    }
 
-    if (note.user.toString() !== req.user.id)
+    if (note.user.toString() !== req.user.id) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
 
     note.pinned = !note.pinned;
+    note.updatedAt = new Date();
     await note.save();
 
     return res.json({
@@ -113,13 +126,15 @@ export const deleteNote = async (req, res) => {
   try {
     const note = await Note.findById(req.params.id);
 
-    if (!note)
+    if (!note) {
       return res
         .status(404)
         .json({ success: false, message: "Note not found" });
+    }
 
-    if (note.user.toString() !== req.user.id)
+    if (note.user.toString() !== req.user.id) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
 
     await note.deleteOne();
 
